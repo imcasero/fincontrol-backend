@@ -2,10 +2,14 @@ import { HttpException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/prisma/prisma.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private jwtAuthService: JwtService,
+  ) {}
 
   async register(userObject: Prisma.UserCreateInput) {
     const { email, password } = userObject;
@@ -38,6 +42,16 @@ export class AuthService {
 
     if (!passwordMatch) throw new HttpException('PASSWORD_INCORRECT', 403);
 
-    return user;
+    const token = this.jwtAuthService.sign({
+      userId: user.id,
+      name: user.name,
+    });
+
+    const data = {
+      user,
+      token,
+    };
+
+    return data;
   }
 }
