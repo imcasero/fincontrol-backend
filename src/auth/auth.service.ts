@@ -33,8 +33,8 @@ export class AuthService {
     return user;
   }
 
-  async login(email: Prisma.UserWhereUniqueInput, password: string) {
-    const user = await this.prisma.user.findUnique({ where: email });
+  async login(email: string, password: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
 
     if (!user) throw new HttpException('USER_NOT_FOUND', 404);
 
@@ -42,16 +42,16 @@ export class AuthService {
 
     if (!passwordMatch) throw new HttpException('PASSWORD_INCORRECT', 403);
 
-    const token = this.jwtAuthService.sign({
+    const token = await this.jwtAuthService.signAsync({
       userId: user.id,
       name: user.name,
     });
 
-    const data = {
-      user,
+    const { password: _, ...userWithoutPassword } = user;
+
+    return {
+      user: userWithoutPassword,
       token,
     };
-
-    return data;
   }
 }
