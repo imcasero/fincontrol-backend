@@ -12,7 +12,10 @@ export class AuthController {
   }
 
   @Post('login')
-  loginUser() {
-    return 'Login user';
+  loginUser(@Body() body: { email: string; password: string }) {
+    const userWhereUnique: Prisma.UserWhereUniqueInput = {
+      email: body.email,
+    };
+    return this.authService.login(userWhereUnique, body.password);
   }
 }

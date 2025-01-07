@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/prisma/prisma.service';
@@ -25,6 +25,18 @@ export class AuthService {
     const user = await this.prisma.user.create({
       data: userObject,
     });
+
+    return user;
+  }
+
+  async login(email: Prisma.UserWhereUniqueInput, password: string) {
+    const user = await this.prisma.user.findUnique({ where: email });
+
+    if (!user) throw new HttpException('USER_NOT_FOUND', 404);
+
+    const passwordMatch = await bcrypt.compare(password, user.password);
+
+    if (!passwordMatch) throw new HttpException('PASSWORD_INCORRECT', 403);
 
     return user;
   }
