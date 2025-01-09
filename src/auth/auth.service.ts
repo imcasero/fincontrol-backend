@@ -57,4 +57,30 @@ export class AuthService {
       { expiresIn: AuthTimeExpires.JWT },
     );
   }
+
+  async logout(id: Prisma.UserWhereUniqueInput) {
+    return this.prisma.user.update({
+      where: id,
+      data: { refreshToken: null },
+    });
+  }
+
+  async changePassword(
+    id: Prisma.UserWhereUniqueInput,
+    password: string,
+    newPassword: string,
+  ) {
+    const user = await this.prisma.user.findUnique({ where: id });
+
+    if (!user) throw new HttpException('USER_NOT_FOUND', 404);
+
+    if (!(await bcrypt.compare(password, user.password))) {
+      throw new HttpException('PASSWORD_INCORRECT', 403);
+    }
+
+    return this.prisma.user.update({
+      where: id,
+      data: { password: await bcrypt.hash(newPassword, 10) },
+    });
+  }
 }

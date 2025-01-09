@@ -21,12 +21,20 @@ export class AuthController {
   }
 
   @Post('logout') // Portect | remove refresh token from user
-  logout() {
-    return console.log('logout');
+  logout(@Body() id: Prisma.UserWhereUniqueInput) {
+    this.authService.logout(id);
   }
 
   @Post('change-password') // Portect | change password
-  changePassword() {
-    console.log('change password');
+  changePassword(
+    @Body()
+    body: {
+      id: Prisma.UserWhereUniqueInput;
+      oldPassword: string;
+      newPassword: string;
+    },
+  ) {
+    const { id, oldPassword, newPassword } = body;
+    this.authService.changePassword(id, oldPassword, newPassword);
   }
 }
