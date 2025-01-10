@@ -1,6 +1,7 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Prisma } from '@prisma/client';
+import { JwtGuard } from './guards/jwt.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -12,6 +13,7 @@ export class AuthController {
     return this.authService.login(email, password);
   }
 
+  @UseGuards(JwtGuard)
   @Post('refresh') // Portect | return new jwt token
   refreshToken(
     @Body() body: { refreshToken: string; id: Prisma.UserWhereUniqueInput },
@@ -20,11 +22,13 @@ export class AuthController {
     return this.authService.refreshToken(refreshToken, id);
   }
 
+  @UseGuards(JwtGuard)
   @Post('logout') // Portect | remove refresh token from user
   logout(@Body() id: Prisma.UserWhereUniqueInput) {
     this.authService.logout(id);
   }
 
+  @UseGuards(JwtGuard)
   @Post('change-password') // Portect | change password
   changePassword(
     @Body()
