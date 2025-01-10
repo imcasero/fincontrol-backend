@@ -1,5 +1,4 @@
 import { HttpException, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from '@/prisma/prisma.service';
 import { JwtService } from '@nestjs/jwt';
@@ -8,16 +7,19 @@ import { AuthTimeExpires } from '@/constants/auth.constants';
 @Injectable()
 export class AuthService {
   constructor(
-    private prisma: PrismaService,
-    private jwtAuthService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly jwtAuthService: JwtService,
   ) {}
 
   async login(email: string, password: string) {
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user) throw new HttpException('USER_NOT_FOUND', 404);
+    if (!user) {
+      throw new HttpException('USER_NOT_FOUND', 404);
+    }
 
-    if (!(await bcrypt.compare(password, user.password))) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new HttpException('PASSWORD_INCORRECT', 403);
     }
 
@@ -41,46 +43,62 @@ export class AuthService {
     };
   }
 
-  async refreshToken(refreshToken: string, id: Prisma.UserWhereUniqueInput) {
-    const user = await this.prisma.user.findUnique({ where: id });
+  async refreshToken(refreshToken: string) {
+    try {
+      const decoded = this.jwtAuthService.verify(refreshToken);
 
-    if (!user) throw new HttpException('USER_NOT_FOUND', 404);
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.userId },
+      });
 
-    const decoded = this.jwtAuthService.verify(refreshToken);
+      if (!user) {
+        throw new HttpException('USER_NOT_FOUND', 404);
+      }
 
-    if (decoded.userId !== user.id) {
+      const newToken = this.jwtAuthService.sign(
+        { userId: user.id, name: user.name },
+        { expiresIn: AuthTimeExpires.JWT },
+      );
+
+      return { token: newToken };
+    } catch (error) {
+      console.log(error);
       throw new HttpException('INVALID_REFRESH_TOKEN', 401);
     }
-
-    return this.jwtAuthService.sign(
-      { userId: user.id, name: user.name },
-      { expiresIn: AuthTimeExpires.JWT },
-    );
   }
 
-  async logout(id: Prisma.UserWhereUniqueInput) {
-    return this.prisma.user.update({
-      where: id,
+  async logout(email: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    if (!user) {
+      throw new HttpException('USER_NOT_FOUND', 404);
+    }
+
+    await this.prisma.user.update({
+      where: { email },
       data: { refreshToken: null },
     });
+
+    return { message: 'Successfully logged out' };
   }
 
-  async changePassword(
-    id: Prisma.UserWhereUniqueInput,
-    password: string,
-    newPassword: string,
-  ) {
-    const user = await this.prisma.user.findUnique({ where: id });
+  async changePassword(email: string, password: string, newPassword: string) {
+    const user = await this.prisma.user.findUnique({ where: { email } });
 
-    if (!user) throw new HttpException('USER_NOT_FOUND', 404);
+    if (!user) {
+      throw new HttpException('USER_NOT_FOUND', 404);
+    }
 
-    if (!(await bcrypt.compare(password, user.password))) {
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
       throw new HttpException('PASSWORD_INCORRECT', 403);
     }
 
-    return this.prisma.user.update({
-      where: id,
+    await this.prisma.user.update({
+      where: { email },
       data: { password: await bcrypt.hash(newPassword, 10) },
     });
+
+    return { message: 'Password successfully changed' };
   }
 }
