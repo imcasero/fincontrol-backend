@@ -17,4 +17,17 @@ export class UserService {
       },
     });
   }
+
+  async updateUser(data: PrismaClient.UserUpdateInput) {
+    const { email, name } = data;
+
+    return this.prisma.user.update({
+      where: { email: typeof email === 'string' ? email : undefined },
+      data: {
+        email,
+        name,
+        updatedAt: new Date(),
+      },
+    });
+  }
 }
