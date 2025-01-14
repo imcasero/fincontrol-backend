@@ -14,11 +14,65 @@ datasource db {
 }
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
+  id           Int           @id @default(autoincrement())
+  email        String        @unique
   password     String
   name         String
   refreshToken String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  categories   Category[]
+}
+
+model Transaction {
+  id               Int             @id @default(autoincrement())
+  amount           Float
+  description      String
+  date             DateTime        @default(now())
+  type             TransactionType
+  userId           Int
+  user             User            @relation(fields: [userId], references: [id])
+  categoryId       Int
+  category         Category        @relation(fields: [categoryId], references: [id])
+  recurrenceRule   RecurrenceRule? @relation(fields: [recurrenceRuleId], references: [id])
+  recurrenceRuleId Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+}
+
+model Category {
+  id           Int             @id @default(autoincrement())
+  name         String
+  description  String?
+  type         TransactionType
+  userId       Int
+  user         User            @relation(fields: [userId], references: [id])
+  transactions Transaction[]
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model RecurrenceRule {
+  id           Int           @id @default(autoincrement())
+  frequency    Frequency
+  interval     Int           @default(1)
+  startDate    DateTime
+  endDate      DateTime?
+  transactions Transaction[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum Frequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  YEARLY
 }
