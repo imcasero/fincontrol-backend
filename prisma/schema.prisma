@@ -22,46 +22,20 @@ model User {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   transactions Transaction[]
-  categories   Category[]
 }
 
 model Transaction {
-  id               Int             @id @default(autoincrement())
-  amount           Float
-  description      String
-  date             DateTime        @default(now())
-  type             TransactionType
-  userId           Int
-  user             User            @relation(fields: [userId], references: [id])
-  categoryId       Int
-  category         Category        @relation(fields: [categoryId], references: [id])
-  recurrenceRule   RecurrenceRule? @relation(fields: [recurrenceRuleId], references: [id])
-  recurrenceRuleId Int?
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-}
-
-model Category {
-  id           Int             @id @default(autoincrement())
-  name         String
-  description  String?
-  type         TransactionType
-  userId       Int
-  user         User            @relation(fields: [userId], references: [id])
-  transactions Transaction[]
-  createdAt    DateTime        @default(now())
-  updatedAt    DateTime        @updatedAt
-}
-
-model RecurrenceRule {
-  id           Int           @id @default(autoincrement())
-  frequency    Frequency
-  interval     Int           @default(1)
-  startDate    DateTime
-  endDate      DateTime?
-  transactions Transaction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id          Int             @id @default(autoincrement())
+  amount      Float
+  description String
+  date        DateTime        @default(now())
+  type        TransactionType
+  category    CategoryType
+  frequency   Frequency?
+  userId      Int
+  user        User            @relation(fields: [userId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 enum TransactionType {
@@ -69,10 +43,17 @@ enum TransactionType {
   EXPENSE
 }
 
+enum CategoryType {
+  FOOD
+  TRANSPORT
+  RENT
+  UTILITIES
+  ENTERTAINMENT
+}
+
 enum Frequency {
   DAILY
   WEEKLY
   MONTHLY
-  QUARTERLY
   YEARLY
 }
