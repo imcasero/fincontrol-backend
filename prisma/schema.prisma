@@ -44,11 +44,22 @@ enum TransactionType {
 }
 
 enum CategoryType {
-  FOOD
-  TRANSPORT
-  RENT
-  UTILITIES
-  ENTERTAINMENT
+  FOOD // Food and groceries
+  TRANSPORT // Public transport, fuel, etc.
+  RENT // Rent or mortgage
+  UTILITIES // Basic services: water, electricity, internet
+  ENTERTAINMENT // Leisure: movies, concerts, video games
+  HEALTH // Health: medicines, medical appointments, insurance
+  EDUCATION // Education: tuition, courses, books
+  SHOPPING // General shopping: clothing, accessories
+  SAVINGS // Savings
+  INVESTMENTS // Investments: stocks, cryptocurrencies
+  GIFTS // Gifts for friends or family
+  CHARITY // Donations or charitable contributions
+  TRAVEL // Travel: flights, hotels, tourism
+  SUBSCRIPTIONS // Subscriptions: Netflix, Spotify, gyms
+  PERSONAL_CARE // Personal care: haircuts, cosmetics
+  OTHERS // Miscellaneous: any expense that doesn't fit elsewhere
 }
 
 enum Frequency {
